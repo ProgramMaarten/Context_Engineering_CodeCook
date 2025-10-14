@@ -1,0 +1,274 @@
+/* Reset en basis styling */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+}
+
+/* Header */
+header {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    padding: 25px;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 2rem;
+    font-weight: 300;
+}
+
+/* Input sectie */
+.todo-input-section {
+    padding: 25px;
+    display: flex;
+    gap: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+#todoInput {
+    flex: 1;
+    padding: 12px 16px;
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+#todoInput:focus {
+    outline: none;
+    border-color: #4facfe;
+    box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+}
+
+#addBtn {
+    padding: 12px 24px;
+    background: #4facfe;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+#addBtn:hover {
+    background: #3a9bed;
+}
+
+#addBtn:active {
+    transform: translateY(1px);
+}
+
+/* Todo lijst */
+.todo-list {
+    list-style: none;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.todo-item {
+    display: flex;
+    align-items: center;
+    padding: 16px 25px;
+    border-bottom: 1px solid #f0f0f0;
+    transition: all 0.3s ease; /* NIEUW: smooth transitions */
+}
+
+.todo-item:hover {
+    background: #f8f9fa;
+    transform: translateX(5px); /* NIEUW: subtiele hover animatie */
+}
+
+.todo-item:last-child {
+    border-bottom: none;
+}
+
+.todo-checkbox {
+    width: 20px;
+    height: 20px;
+    margin-right: 12px;
+    cursor: pointer;
+}
+
+.todo-text {
+    flex: 1;
+    font-size: 16px;
+    color: #333;
+}
+
+.todo-item.completed .todo-text {
+    text-decoration: line-through;
+    color: #888;
+}
+
+.delete-btn {
+    background: #ff6b6b;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s ease;
+}
+
+.delete-btn:hover {
+    background: #ff5252;
+}
+
+/* Stats sectie */
+.todo-stats {
+    padding: 16px 25px;
+    background: #f8f9fa;
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+}
+
+/* Lege state */
+.todo-list:empty::before {
+    content: "Nog geen taken toegevoegd...";
+    display: block;
+    text-align: center;
+    padding: 40px 20px;
+    color: #888;
+    font-style: italic;
+}
+
+/* Responsive design */
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+    
+    .todo-input-section {
+        flex-direction: column;
+    }
+    
+    #addBtn {
+        width: 100%;
+    }
+}
+/* Edit knop styling */
+.todo-actions {
+    display: flex;
+    gap: 8px;
+    margin-left: auto; /* Duwt knoppen naar rechts */
+}
+
+.edit-btn {
+    background: #4facfe;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.edit-btn:hover {
+    background: #3a9bed;
+    transform: scale(1.05);
+}
+
+.edit-btn:active {
+    transform: scale(0.95);
+}
+
+.delete-btn {
+    background: #ff6b6b;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.delete-btn:hover {
+    background: #ff5252;
+    transform: scale(1.05);
+}
+
+.delete-btn:active {
+    transform: scale(0.95);
+}
+
+/* Edit mode styling */
+.todo-item.editing {
+    background: #f8f9fa;
+    border: 2px solid #4facfe;
+    border-radius: 8px;
+    padding: 12px 20px;
+    margin: 2px 0;
+}
+
+.todo-item.editing .edit-input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 2px solid #e1e5e9;
+    border-radius: 6px;
+    font-size: 16px;
+    font-family: inherit;
+    margin-right: 10px;
+}
+
+.todo-item.editing .edit-input:focus {
+    outline: none;
+    border-color: #4facfe;
+    box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+}
+
+.todo-item.editing .edit-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.save-btn {
+    background: #51cf66;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.save-btn:hover {
+    background: #40c057;
+    transform: scale(1.05);
+}
+
+.cancel-btn {
+    background: #ff6b6b;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.cancel-btn:hover {
+    background: #fa5252;
+    transform: scale(1.05);
+}
