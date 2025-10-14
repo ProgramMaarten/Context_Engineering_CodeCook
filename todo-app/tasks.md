@@ -17,10 +17,10 @@
 ✅ Hover states, active states en transitions
 
 ## Fase 2: Edit Mode Basis (2.5 uur)
-🔲 Event listener voor edit knop klikken
-🔲 DOM transformatie: text → input field met huidige waarde
-🔲 Opslaan/Annuleren knoppen tonen, edit knop verbergen
-🔲 Auto-focus en text selection in edit mode
+✅ Event listener voor edit knop klikken
+✅ DOM transformatie: text → input field met huidige waarde
+✅ Opslaan/Annuleren knoppen tonen, edit knop verbergen
+✅ Auto-focus en text selection in edit mode
 
 ## Fase 3: Core Logic - Happy Path (2.5 uur)
 🔲 Opslaan: nieuwe tekst ophalen en DOM updaten
