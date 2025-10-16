@@ -272,3 +272,17 @@ header h1 {
     background: #fa5252;
     transform: scale(1.05);
 }
+/* Disable interacties tijdens edit mode */
+.todo-item.editing {
+    background: #f8f9fa;
+    border: 2px solid #4facfe;
+    border-radius: 8px;
+    padding: 12px 20px;
+    margin: 2px 0;
+    pointer-events: none; /* NIEUW: voorkom clicks op achtergrond */
+}
+
+.todo-item.editing .edit-input,
+.todo-item.editing .edit-actions {
+    pointer-events: auto; /* NIEUW: maar inputs en knoppen moeten werken */
+}
