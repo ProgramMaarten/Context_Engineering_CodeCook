@@ -19,7 +19,17 @@
                 placeholder="Voeg een nieuwe taak toe..."
                 maxlength="100"
             >
+            <label for="todo-deadline" class="deadline-label">Deadline</label>
+            <input
+                type="datetime-local"
+                id="todo-deadline"
+                class="todo-deadline-input"
+            />
+            <div id="deadline-error" class="input-error" aria-live="polite" style="display:none">Ongeldige datum/tijd</div>
             <button id="addBtn">Toevoegen</button>
+            <label class="sort-toggle-label">
+                <input type="checkbox" id="sort-deadline-toggle" /> Sorteer op deadline
+            </label>
         </div>
         
         <ul id="todoList" class="todo-list">

@@ -3,13 +3,19 @@
 
 class TodoApp {
     constructor() {
-        this.todos = this.getTodosFromStorage();
+    this.todos = this.getTodosFromStorage();
+    // Normaliseer het model: zorg dat elk todo-object een `deadline` property heeft (optioneel)
+    this.todos = this.todos.map(t => Object.assign({ deadline: null }, t));
         this.todoInput = document.getElementById('todoInput');
         this.addBtn = document.getElementById('addBtn');
-        this.todoList = document.getElementById('todoList');
-        this.todoCount = document.getElementById('todoCount');
+    this.deadlineInput = document.getElementById('todo-deadline');
+    this.deadlineError = document.getElementById('deadline-error');
+    this.todoList = document.getElementById('todoList');
+    this.todoCount = document.getElementById('todoCount');
+    this.sortToggle = document.getElementById('sort-deadline-toggle');
+    this.sortByDeadline = false; // transient view only
         
-        this.initEventListeners();
+    this.initEventListeners();
 
         // NIEUW: allow dropping on the list container (drop-to-end). Guard so we attach once.
         if (!this._listDragHandlersAttached) {
@@ -62,11 +68,47 @@ class TodoApp {
             return;
         }
 
+        // Lees deadline value (datetime-local) en normaliseer naar ISO of null
+        let deadlineIso = null;
+        try {
+            const raw = this.deadlineInput ? this.deadlineInput.value : '';
+            if (raw) {
+                // basic validation for datetime-local format
+                if (!this.isValidDatetimeLocal(raw)) {
+                    if (this.deadlineError) {
+                        this.deadlineError.style.display = 'block';
+                        this.deadlineError.textContent = 'Ongeldige datum/tijd';
+                    }
+                    return; // blokkeer toevoegen
+                } else {
+                    if (this.deadlineError) this.deadlineError.style.display = 'none';
+                }
+
+                // Normalize to include default time when user omitted it or entered midnight
+                const normalized = this.normalizeDatetimeLocal(raw);
+                const parsed = new Date(normalized);
+                if (!isNaN(parsed)) {
+                    deadlineIso = parsed.toISOString();
+                }
+            } else {
+                // If user left the deadline empty, default to tomorrow at 23:59
+                if (this.deadlineError) this.deadlineError.style.display = 'none';
+                const t = new Date();
+                t.setDate(t.getDate() + 1);
+                t.setHours(23, 59, 0, 0);
+                deadlineIso = t.toISOString();
+            }
+        } catch (err) {
+            deadlineIso = null;
+        }
+
         const newTodo = {
             id: Date.now(),
             text: text,
             completed: false,
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
+            // nieuw veld: deadline (ISO datetime string) — wordt gevuld wanneer de gebruiker een deadline kiest
+            deadline: deadlineIso
         };
 
         this.todos.push(newTodo);
@@ -74,6 +116,39 @@ class TodoApp {
         this.renderTodo(newTodo);
         this.clearInput();
         this.updateTodoCount();
+    }
+
+    // Validate a datetime-local string (basic check: pattern and parsable)
+    isValidDatetimeLocal(value) {
+        if (!value || typeof value !== 'string') return false;
+        // Accept either date-only YYYY-MM-DD or full YYYY-MM-DDTHH:MM(:SS)
+        const re = /^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}(?::\d{2})?)?$/;
+        if (!re.test(value)) return false;
+        const parsed = new Date(value);
+        return !isNaN(parsed.getTime());
+    }
+
+    // Normalize a datetime-local input string: if user provided date-only or time is 00:00,
+    // default the time to 23:59 for that date. Returns a datetime-local string 'YYYY-MM-DDTHH:MM' or ''
+    normalizeDatetimeLocal(raw) {
+        if (!raw || typeof raw !== 'string') return '';
+        // If it's just a date (YYYY-MM-DD), append 23:59
+        const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(raw);
+        if (dateOnly) return `${raw}T23:59`;
+
+        const m = raw.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/);
+        if (!m) return raw; // unknown format - return as-is for validation to catch
+
+        const datePart = m[1];
+        const hour = Number(m[2]);
+        const minute = Number(m[3]);
+        // If time is exactly 00:00, default to 23:59
+        if (hour === 0 && minute === 0) {
+            return `${datePart}T23:59`;
+        }
+
+        // preserve provided time (drop seconds if present for consistency)
+        return `${datePart}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
     }
 
     // Task 6: Todo afvinken functionaliteit
@@ -114,9 +189,19 @@ class TodoApp {
         // Clear huidige lijst
         this.todoList.innerHTML = '';
 
-        // Render todos in de exacte volgorde zoals opgeslagen in this.todos
-        // (Geen automatische sortering - respecteer handmatige order)
-        this.todos.forEach(todo => {
+        // Decide welke lijst we renderen: originele this.todos (persistent order)
+        // of een transient view gesorteerd op deadline (geen wijziging van this.todos)
+        let listToRender = this.todos.slice();
+        if (this.sortByDeadline) {
+            listToRender.sort((a, b) => {
+                if (!a.deadline && !b.deadline) return 0;
+                if (!a.deadline) return 1;
+                if (!b.deadline) return -1;
+                return new Date(a.deadline) - new Date(b.deadline);
+            });
+        }
+
+        listToRender.forEach(todo => {
             this.renderTodo(todo);
         });
 
@@ -124,9 +209,41 @@ class TodoApp {
         this.updateTodoCount();
     }
 
+    // Helper: format deadline ISO string to locale short datetime or return '--'
+    formatDeadline(deadlineIso) {
+        if (!deadlineIso) return '--';
+        const d = new Date(deadlineIso);
+        if (isNaN(d)) return '--';
+        // locale short date + time (fallback simple formatting)
+        try {
+            return d.toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
+        } catch (err) {
+            return d.toLocaleString();
+        }
+    }
+
+    // Convert ISO datetime (UTC) to a local 'YYYY-MM-DDTHH:MM' string for datetime-local input
+    isoToDatetimeLocal(iso) {
+        if (!iso) return '';
+        const d = new Date(iso);
+        if (isNaN(d)) return '';
+        const pad = (n) => String(n).padStart(2, '0');
+        const year = d.getFullYear();
+        const month = pad(d.getMonth() + 1);
+        const day = pad(d.getDate());
+        const hours = pad(d.getHours());
+        const minutes = pad(d.getMinutes());
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+
     renderTodo(todo) {
+        // Format deadline for display
+        const deadlineText = this.formatDeadline ? this.formatDeadline(todo.deadline) : (todo.deadline ? todo.deadline : '--');
         const todoItem = document.createElement('li');
-        todoItem.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+    todoItem.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+    // visual state classes will be appended based on deadline vs now
+    const visualState = this.computeVisualState(todo.deadline);
+    if (visualState) todoItem.classList.add(visualState);
         // data-id aanwezig voor drag/drop en andere handlers
         todoItem.dataset.id = todo.id;
         // draggable attribute toegevoegd eerder
@@ -136,6 +253,7 @@ class TodoApp {
             <span class="drag-handle" title="Versleep om te ordenen">☰</span>
             <input type="checkbox" class="todo-checkbox" ${todo.completed ? 'checked' : ''}>
             <span class="todo-text">${this.escapeHtml(todo.text)}</span>
+            <span class="todo-deadline">${this.escapeHtml(deadlineText)}</span>
             <div class="todo-actions">
                 <button class="edit-btn" title="Bewerken">✏️</button>
                 <button class="delete-btn" title="Verwijderen">🗑️</button>
@@ -234,6 +352,13 @@ class TodoApp {
     clearInput() {
         this.todoInput.value = '';
         this.todoInput.focus();
+        if (this.deadlineInput) {
+            // Prefill the deadline input with tomorrow 23:59 as a friendly default
+            const t = new Date();
+            t.setDate(t.getDate() + 1);
+            t.setHours(23, 59, 0, 0);
+            this.deadlineInput.value = this.isoToDatetimeLocal(t.toISOString());
+        }
     }
 
     updateTodoCount() {
@@ -263,6 +388,27 @@ class TodoApp {
         this.addBtn.addEventListener('click', () => {
             this.addTodo();
         });
+
+        // Sorteer toggle
+        if (this.sortToggle) {
+            this.sortToggle.addEventListener('change', (e) => {
+                this.sortByDeadline = !!e.target.checked;
+                this.renderTodos();
+            });
+        }
+    }
+
+    // Compute visual state based on deadline: 'overdue', 'due-soon', 'no-deadline' or ''
+    computeVisualState(deadlineIso) {
+        if (!deadlineIso) return 'no-deadline';
+        const now = new Date();
+        const d = new Date(deadlineIso);
+        if (isNaN(d)) return 'no-deadline';
+        const diffMs = d - now;
+        const diffHours = diffMs / (1000 * 60 * 60);
+        if (diffMs < 0) return 'overdue';
+        if (diffHours <= 48) return 'due-soon';
+        return '';
     }
 
     // NIEUWE METHODE: Enter edit mode
@@ -280,12 +426,17 @@ class TodoApp {
 
         // Transformeer naar edit mode
         todoElement.classList.add('editing');
+        // Prefill deadline in datetime-local format
+        const deadlineInputValue = this.isoToDatetimeLocal(todo.deadline);
         todoElement.innerHTML = `
             <input type="text" class="edit-input" value="${this.escapeHtml(todo.text)}">
+            <input type="datetime-local" class="edit-deadline-input" value="${this.escapeHtml(deadlineInputValue)}">
             <div class="edit-actions">
                 <button class="save-btn" title="Opslaan">💾</button>
                 <button class="cancel-btn" title="Annuleren">❌</button>
+                <button class="clear-deadline-btn" title="Clear deadline">🗑️</button>
             </div>
+            <div class="edit-deadline-error" style="display:none;color:#d9534f;margin-top:6px">Ongeldige datum/tijd</div>
         `;
 
         // Event listeners voor save en cancel
@@ -297,7 +448,7 @@ class TodoApp {
         editInput.maxLength = 100;
 
         saveBtn.addEventListener('click', () => {
-            this.saveEdit(todoId, editInput.value);
+            this.saveEdit(todoId);
         });
 
         cancelBtn.addEventListener('click', () => {
@@ -308,11 +459,20 @@ class TodoApp {
         editInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                this.saveEdit(todoId, editInput.value);
+                this.saveEdit(todoId);
             } else if (e.key === 'Escape') {
                 e.preventDefault();
                 this.cancelEdit(todoId);
             }
+        });
+
+        // Clear deadline button
+        const clearBtn = todoElement.querySelector('.clear-deadline-btn');
+        const editDeadlineInput = todoElement.querySelector('.edit-deadline-input');
+        const editDeadlineError = todoElement.querySelector('.edit-deadline-error');
+        clearBtn.addEventListener('click', () => {
+            if (editDeadlineInput) editDeadlineInput.value = '';
+            if (editDeadlineError) editDeadlineError.style.display = 'none';
         });
 
         // Task 3: Auto-focus en text selection
@@ -329,7 +489,15 @@ class TodoApp {
 
     // MET deze complete implementatie:
     saveEdit(todoId, newText) {
-        const trimmedText = newText.trim();
+        // If newText not provided, read values from DOM
+        const todoElement = document.querySelector(`[data-id="${todoId}"]`);
+        if (!todoElement) return;
+
+        const editInput = todoElement.querySelector('.edit-input');
+        const editDeadlineInput = todoElement.querySelector('.edit-deadline-input');
+        const editDeadlineError = todoElement.querySelector('.edit-deadline-error');
+
+        const trimmedText = editInput ? editInput.value.trim() : '';
         
         // Task 4: Input validation (basis)
         if (trimmedText === '') {
@@ -339,15 +507,35 @@ class TodoApp {
 
         const todoIndex = this.todos.findIndex(todo => todo.id === todoId);
         if (todoIndex === -1) return;
-
         // Update de tekst in het data model
         this.todos[todoIndex].text = trimmedText;
-        
-        // Task 3: LocalStorage bijwerken
+
+        // Read deadline from edit input and validate
+        let deadlineIso = null;
+        if (editDeadlineInput && editDeadlineInput.value) {
+            const raw = editDeadlineInput.value;
+            if (!this.isValidDatetimeLocal(raw)) {
+                if (editDeadlineError) {
+                    editDeadlineError.style.display = 'block';
+                    editDeadlineError.textContent = 'Ongeldige datum/tijd';
+                }
+                return; // do not save if invalid
+            } else {
+                if (editDeadlineError) editDeadlineError.style.display = 'none';
+                const normalized = this.normalizeDatetimeLocal(raw);
+                const parsed = new Date(normalized);
+                if (!isNaN(parsed)) deadlineIso = parsed.toISOString();
+            }
+        } else {
+            // cleared
+            deadlineIso = null;
+        }
+
+        this.todos[todoIndex].deadline = deadlineIso;
+
+        // Sla op en render opnieuw
         this.saveTodosToStorage();
-        
-        // DOM updaten met nieuwe tekst
-        this.updateTodoInDOM(todoId, trimmedText);
+        this.renderTodos();
     }
 
     cancelEdit(todoId) {
@@ -394,10 +582,18 @@ class TodoApp {
         // Herstel de normale structuur met bijgewerkte tekst
         const todoIndex = this.todos.findIndex(todo => todo.id === todoId);
         const todo = this.todos[todoIndex];
-        
+
+        // Reset classes and apply visual state
+        todoElement.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+        const visualState = this.computeVisualState(todo.deadline);
+        if (visualState) todoElement.classList.add(visualState);
+
+        todoElement.dataset.id = todo.id;
+
         todoElement.innerHTML = `
             <input type="checkbox" class="todo-checkbox" ${todo.completed ? 'checked' : ''}>
             <span class="todo-text">${this.escapeHtml(newText)}</span>
+            <span class="todo-deadline">${this.escapeHtml(this.formatDeadline(todo.deadline))}</span>
             <div class="todo-actions">
                 <button class="edit-btn" title="Bewerken">✏️</button>
                 <button class="delete-btn" title="Verwijderen">🗑️</button>

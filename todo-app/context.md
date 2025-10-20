@@ -10,6 +10,7 @@ Een simpele todo-lijst webapplicatie waar gebruikers persoonlijke taken kunnen b
 - ✅ Taken persistent opslaan (blijven staan na herladen)
 - ✅ Taken weergeven in een overzichtelijke lijst
 - ✅ Taken beweken (edit button)
+- 🔲 Deadline toevoegen aan een taak
 
 
 ## Technical Stack
