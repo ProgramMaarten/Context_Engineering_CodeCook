@@ -4,5 +4,8 @@
   "private": true,
   "scripts": {
     "start": "npx http-server -p 8080"
+  },
+  "dependencies": {
+    "jsdom": "^21.1.2"
   }
 }

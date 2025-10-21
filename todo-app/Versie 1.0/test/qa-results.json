@@ -1,0 +1,37 @@
+[
+  {
+    "test": "Add without deadline",
+    "result": "FAIL",
+    "message": "todo not found in storage after add"
+  },
+  {
+    "test": "Add with date-only",
+    "result": "FAIL",
+    "message": "todo not found after add date-only"
+  },
+  {
+    "test": "Add with time 00:00",
+    "result": "FAIL",
+    "message": "todo not found after add midnight"
+  },
+  {
+    "test": "Edit deadline via UI",
+    "result": "FAIL",
+    "message": "todo missing after save edit"
+  },
+  {
+    "test": "Clear deadline in edit-mode",
+    "result": "FAIL",
+    "message": "todo missing after clear"
+  },
+  {
+    "test": "Reorder (drop simulation)",
+    "result": "FAIL",
+    "message": "Cannot read properties of null (reading 'map')"
+  },
+  {
+    "test": "Sort-view toggle (transient)",
+    "result": "FAIL",
+    "message": "Cannot read properties of null (reading 'map')"
+  }
+]

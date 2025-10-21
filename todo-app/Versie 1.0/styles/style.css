@@ -13,7 +13,7 @@ body {
 }
 
 .container {
-    max-width: 600px;
+    max-width: 860px; /* increased so input area has more horizontal space on desktop */
     margin: 0 auto;
     background: white;
     border-radius: 12px;
@@ -40,6 +40,7 @@ header h1 {
     display: flex;
     gap: 12px;
     border-bottom: 1px solid #eee;
+    align-items: center; /* center vertically */
 }
 
 .deadline-label {
@@ -53,6 +54,9 @@ header h1 {
     border: 2px solid #e1e5e9;
     border-radius: 8px;
     font-size: 14px;
+    /* Keep the deadline input from forcing the layout too wide on desktop */
+    flex: 0 0 220px;
+    max-width: 220px;
 }
 
 .input-error {
@@ -68,6 +72,7 @@ header h1 {
     border-radius: 8px;
     font-size: 16px;
     transition: all 0.3s ease;
+    min-width: 0; /* allow the input to shrink inside flex container */
 }
 
 #todoInput:focus {
@@ -85,6 +90,8 @@ header h1 {
     font-size: 16px;
     cursor: pointer;
     transition: background 0.3s ease;
+    white-space: nowrap; /* voorkom dat knop breekt */
+    flex-shrink: 0; /* voorkom krimpen tot punt dat hij uit de container breekt */
 }
 
 #addBtn:hover {
@@ -217,8 +224,20 @@ header h1 {
     
     .todo-input-section {
         flex-direction: column;
+        gap: 8px;
+        align-items: stretch;
     }
     
+    .todo-deadline-input {
+        flex: 1 1 auto;
+        max-width: none;
+        width: 100%;
+    }
+
+    #todoInput {
+        width: 100%;
+    }
+
     #addBtn {
         width: 100%;
     }
@@ -353,7 +372,6 @@ header h1 {
     border-radius: 8px;
     padding: 12px 20px;
     margin: 2px 0;
-    pointer-events: none; /* NIEUW: voorkom clicks op achtergrond */
 }
 
 .todo-item.editing .edit-input,

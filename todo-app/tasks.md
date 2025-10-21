@@ -1,3 +1,22 @@
+### Fixes & follow-ups (from user feedback)
+
+ - [x] Fix layout so Add button fits
+   - Pas CSS/markup aan zodat de `#addBtn` niet uit de `.container` breekt. Acceptance: op breedte >=600px staat alles op één rij; op small screens schakelt de input-sectie naar column layout met knop full-width.
+   - Files changed: `Versie 1.0/styles/style.css` — added `white-space: nowrap` + `flex-shrink: 0` to `#addBtn`, improved mobile stacking.
+
+ - [x] Make deadline editable in edit-mode
+   - Los het huidige probleem op waarbij de tekst van een todo wél bewerkbaar is maar de deadline-input niet. Oorzaak: `.todo-item.editing` had `pointer-events: none`, dit blokkeerde inputs.
+   - Fix applied: removed `pointer-events: none` so `.edit-deadline-input`, `.edit-input`, and edit buttons are interactive.
+   - Files changed: `Versie 1.0/styles/style.css` (edit-mode rules updated).
+
+ - [x] Small CSS fixes for edit-mode interaction
+   - Verifieer `.edit-deadline-input`, `.save-btn`, `.clear-deadline-btn` zijn focusable/tappable; tweaked responsive gap/align.
+   - Files changed: `Versie 1.0/styles/style.css` (responsive `.todo-input-section` stacking and gaps).
+
+ - [ ] QA after fixes
+   - Run smoke tests after fixes and record outcomes in `Versie 1.0/README.md` and this `tasks.md`. (Pending: execute manual smoke tests and log results.)
+
+
 # Tasks
 ✅ Project structuur aanmaken (index.html, styles/, scripts/)
 ✅ Basis HTML layout met inputveld en lege todo-lijst
