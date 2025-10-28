@@ -48,6 +48,7 @@ todo-app/
 
 ## Code style rules (prevent file bloat)
 
+
 - Prefer kleine, herbruikbare helperfuncties (single responsibility). Splits bij >200 LOC per functie/file.
 - Vermijd duplicatie: centraliseer DOM-selectors en formatter helpers in één plek.
 - Keep UI rendering separate from data logic: small render functions that accept data and return DOM nodes.
@@ -63,3 +64,19 @@ todo-app/
   - Using template strings or helper functions to keep templates readable.
   This limit helps editors with side-by-side diffs and keeps code accessible on narrower
   screens. Formatter tools (Prettier/ESLint) may be configured to enforce or autofix this.
+
+# UI & Interaction Patterns
+
+- Gebruik een visueel icoon (zoals 🗑️ of ×) voor delete-acties, rechts van de todo-tekst.
+- Gebruik altijd een <button> element met een duidelijke CSS-class (`delete-btn`) voor verwijder-acties.
+- Koppel event-handlers direct aan de button in de render-functie, zodat elke todo een eigen handler heeft.
+- Houd de delete-logica gescheiden in een aparte methode (`_delete(id)`), voor testbaarheid en hergebruik.
+
+- Voeg een drag-handle (☰) toe aan elk item voor visuele feedback en betere UX.
+- Maak elk todo-item `draggable` en koppel drag-events direct aan het item.
+- Controleer altijd op geldige indices bij het verplaatsen van items.
+- Geef visuele feedback tijdens drag (bijv. via CSS-classes `dragging`, `drag-over`).
+- Mutaties aan de todos-array direct doorvoeren en daarna renderen + opslaan.
+
+- Separation of concerns: Houd UI-acties, event-handlers en data-mutaties gescheiden in kleine, duidelijke functies.
+- Gebruik conventies voor UX: delete-knop rechts, drag-handle zichtbaar, duidelijke iconen.

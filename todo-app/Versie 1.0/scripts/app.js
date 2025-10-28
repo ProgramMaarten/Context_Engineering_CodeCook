@@ -291,28 +291,46 @@ class TodoApp {
       <input class="edit-input" value="${this._esc(todo.text)}">
       <input class="edit-deadline-input" type="datetime-local" value="${this._esc(value)}">
       <div class="edit-actions">
-        <button class="save-btn">💾</button> <button class="cancel-btn">❌</button> <button class="clear-deadline-btn">🗑️</button>
+        <button class="save-btn">💾</button>
+        <button class="cancel-btn">❌</button>
+        <button class="clear-deadline-btn">🗑️</button>
       </div>
-      <div class="edit-deadline-error" style="display:none;color:#d9534f;margin-top:6px">Ongeldige datum/tijd</div>
+      <div class="edit-deadline-error" style="display:none;color:#d9534f;margin-top:6px">
+      Ongeldige datum/tijd
+      </div>
     `;
 
-    const saveBtn = el.querySelector('.save-btn');
-    const cancelBtn = el.querySelector('.cancel-btn');
-    const clearBtn = el.querySelector('.clear-deadline-btn');
-    const input = el.querySelector('.edit-input');
-    const dl = el.querySelector('.edit-deadline-input');
-    const dlErr = el.querySelector('.edit-deadline-error');
+  const saveBtn = el.querySelector('.save-btn');
+  const cancelBtn = el.querySelector('.cancel-btn');
+  const clearBtn = el.querySelector('.clear-deadline-btn');
+  const input = el.querySelector('.edit-input');
+  const dl = el.querySelector('.edit-deadline-input');
+  const dlErr = el.querySelector('.edit-deadline-error');
     input.maxLength = 100;
     saveBtn.addEventListener('click', () => {
       const newText = input.value.trim();
-      if (!newText) { alert('Todo mag niet leeg zijn!'); return }
-      if (dl && dl.value && !this.isValidDatetimeLocal(dl.value)) { dlErr.style.display = 'block'; dlErr.textContent = 'Ongeldige datum/tijd'; return }
+      if (!newText) {
+        alert('Todo mag niet leeg zijn!');
+        return;
+      }
+      if (dl && dl.value && !this.isValidDatetimeLocal(dl.value)) {
+        dlErr.style.display = 'block';
+        dlErr.textContent = 'Ongeldige datum/tijd';
+        return;
+      }
       dlErr.style.display = 'none';
-      const norm = dl && dl.value ? new Date(this.normalizeDatetimeLocal(dl.value)).toISOString() : null;
-      this.todos[i].text = newText; this.todos[i].deadline = norm; this._saveAndRender();
+      const norm = dl && dl.value
+        ? new Date(this.normalizeDatetimeLocal(dl.value)).toISOString()
+        : null;
+      this.todos[i].text = newText;
+      this.todos[i].deadline = norm;
+      this._saveAndRender();
     });
     cancelBtn.addEventListener('click', () => {
-      if (!el.dataset.originalHtml) return; el.classList.remove('editing'); el.innerHTML = el.dataset.originalHtml; this._reattach(el);
+      if (!el.dataset.originalHtml) return;
+      el.classList.remove('editing');
+      el.innerHTML = el.dataset.originalHtml;
+      this._reattach(el);
     });
     clearBtn.addEventListener('click', () => {
       if (dl) dl.value = '';
